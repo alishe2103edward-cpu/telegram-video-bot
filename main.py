@@ -2,7 +2,8 @@ import logging
 import os
 
 
-from telegram.ext import ApplicationBuilder
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 
 def main() -> None:
