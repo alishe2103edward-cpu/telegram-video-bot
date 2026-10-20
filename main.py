@@ -2,7 +2,7 @@ import logging
 import os
 
 
-from telegram_bot.bot import build_application
+from telegram.ext import ApplicationBuilder
 
 
 def main() -> None:
