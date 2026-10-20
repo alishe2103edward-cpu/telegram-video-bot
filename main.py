@@ -1,6 +1,6 @@
-import logging
 import os
-
+import logging
+from telegram.ext import Application
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
@@ -17,7 +17,7 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         level=logging.INFO,
     )
-    application = build_application(token)
+    application = Application.builder().token(token).build()
     logging.getLogger(__name__).info("Starting Telegram bot with long polling.")
     application.run_polling()
 
