@@ -1,4 +1,4 @@
-[10/21/2026 8:13 PM] Alisher: import os
+import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
