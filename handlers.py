@@ -181,8 +181,8 @@ caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qo
         print(f"ANIG'I: {e}")
     import traceback
     traceback.print_exc()
-        await state.clear()
-        await status_msg.edit_text(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n*(Kreditlaringiz saqlanib qoldi)*")
+    await state.clear()
+    await status_msg.edit_text(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n*(Kreditlaringiz saqlanib qoldi)*")
 
 
 # ==========================================
