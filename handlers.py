@@ -88,7 +88,7 @@ async def process_language_selection(callback: CallbackQuery):
         parse_mode="Markdown"
     )
     await callback.answer()
-[10/25/2026 12:38 AM] Alisher: @router.callback_query(F.data == "back_to_main")
+@router.callback_query(F.data == "back_to_main")
 async def back_to_main_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(
@@ -164,7 +164,7 @@ async def handle_product_input(message: Message, state: FSMContext, bot: Bot):
         await status_msg.delete()
         await message.answer_video(
             video=video_url,
-[10/25/2026 12:38 AM] Alisher: caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qolgan balans: {remaining} kredit",
+caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qolgan balans: {remaining} kredit",
             parse_mode="Markdown"
         )
         
@@ -255,7 +255,7 @@ async def handle_receipt_photo(message: Message, state: FSMContext, bot: Bot):
         amount_local=data["amount_local"],
         receipt_file_id=photo.file_id
     )
-[10/25/2026 12:38 AM] Alisher: # Adminlarga xabar va tasdiqlash tugmasini yuborish
+# Adminlarga xabar va tasdiqlash tugmasini yuborish
     admin_kb = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"approve_{message.from_user.id}_{data['credits']}"),
