@@ -65,7 +65,7 @@ VIDEO_DURATION_TIERS = {
 # =====================================================================
 # 4. TARIF REJALARI (VITRINADA DOLLARDA KO'RINADI)
 # =====================================================================
-PRICING_PLANS = {
+PRICING_TIERS = {
     "start": {
         "id": "start",
         "name": "🚀 START",
