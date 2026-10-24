@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from config import PRICING_TIERS, ADMIN_IDS, get_local_price
+from config import PRICING_TIERS, ADMIN_IDS
 from database import (
     get_or_create_user, set_user_language, get_user_credits, 
     update_user_credits, create_payment_record
