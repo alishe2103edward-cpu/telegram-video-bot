@@ -93,7 +93,7 @@ PRICING_PLANS = {
 }
 
 # =====================================================================
-[10/24/2026 9:53 PM] Alisher: # 5. JONLI VALYUTA KURSI KONVERTORI ($ -> UZS, KZT, TJS, KGS)
+# 5. JONLI VALYUTA KURSI KONVERTORI ($ -> UZS, KZT, TJS, KGS)
 # =====================================================================
 # Internet uzilganda ishlatiladigan zaxira (Fallback) kurslar
 FALLBACK_RATES = {
