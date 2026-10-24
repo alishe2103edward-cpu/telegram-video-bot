@@ -91,7 +91,7 @@ async def generate_voiceover(text: str, output_path: str = "voiceover.mp3") -> s
             f.write(response.content)
             
     return output_path
-[10/25/2026 12:34 AM] Alisher: # ==========================================
+# ==========================================
 # 3. AI VIDEO VA VIZUAL GENERATOR (Fal.ai - Kling / Flux)
 # ==========================================
 async def generate_ai_video(visual_prompt: str, image_url: str = None) -> str:
