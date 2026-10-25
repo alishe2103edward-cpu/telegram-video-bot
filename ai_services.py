@@ -58,9 +58,15 @@ async def moderate_and_generate_script(user_text: str, image_url: str = None, la
         response_format={"type": "json_object"},
         messages=messages,
         temperature=0.7
-    )
-
-    return json.loads(response.choices[0].message.content)
+    content = response.choices[0].message.content
+    if not content:
+        return {
+            "is_safe": False,
+            "violation_reason": "Rasmni tahlil qilishda xatolik yuz berdi. Iltimos, rasmni boshqa rakursdan yoki aniqroq izoh bilan qayta yuboring.",
+            "voiceover_text": "",
+            "visual_prompt": ""
+        }
+    return json.loads(content)
 
 
 # ==========================================
