@@ -182,8 +182,7 @@ caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qo
         import traceback
         traceback.print_exc()
         await state.clear()
-        await status_msg.edit_text(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n*(Kreditlaringiz saqlanib qoldi)*")
-
+        await message.answer(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n(Kreditlaringiz saqlanib qoldi)")
 
 # ==========================================
 # BALANS, TARIFLAR VA TO'LOV TIZIMI
