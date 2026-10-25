@@ -10,12 +10,9 @@ load_dotenv()
 # 1. XAVFSIZ API KALITLAR (Railway Variables yoki .env ichidan o'qiladi)
 # =====================================================================
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip().strip('"').strip("'")
-OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY") or "").strip().strip('"').strip("'")
-FAL_KEY = (os.getenv("FAL_KEY") or os.getenv("FAL_API_KEY") or "").strip().strip('"').strip("'")
-ELEVENLABS_API_KEY = (os.getenv("ELEVENLABS_API_KEY") or os.getenv("ELEVENLABS_KEY") or "").strip().strip('"').strip("'")
-
-# Railway Variables ichida qanday kalitlar borligini tekshirish uchun:
-print("RAILWAY MAVJUD KALITLAR:", [k for k in os.environ.keys() if "KEY" in k or "TOKEN" in k or "OPENAI" in k or "FAL" in k])
+OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or os.getenv("OPEN-TG") or "").strip().strip('"').strip("'")
+FAL_KEY = (os.getenv("FAL_KEY") or os.getenv("FAL-TG") or "").strip().strip('"').strip("'")
+ELEVENLABS_API_KEY = (os.getenv("ELEVENLABS_API_KEY") or os.getenv("ELEVEN-TG") or "").strip().strip('"').strip("'")
 
 # Admin Telegram ID (Cheklarni tasdiqlash va tizimni boshqarish uchun)
 ADMIN_IDS = [
