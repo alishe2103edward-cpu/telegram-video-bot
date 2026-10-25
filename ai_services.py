@@ -10,47 +10,46 @@ os.environ["FAL_KEY"] = FAL_KEY.strip().strip('"').strip("'") if FAL_KEY else ""
 
 # OpenAI mijozini ishga tushiramiz
 clean_openai_key = OPENAI_API_KEY.strip().strip('"').strip("'") if OPENAI_API_KEY else ""
-print(f"DEBUG OPENAI KEY: uzunligi={len(clean_openai_key)}, boshlanishi={clean_openai_key[:8]}...")
 openai_client = AsyncOpenAI(api_key=clean_openai_key)
 
-# ==========================================
+# =====================================================================
 # 1. ETIK FILTR VA SSENARIY GENERATORI (GPT-4o)
-# ==========================================
+# =====================================================================
 async def moderate_and_generate_script(user_text: str, image_url: str = None, lang: str = "uz") -> dict:
     """
     1. Mahsulotni etik va qonuniy filtrdan o'tkazadi (Alkogol, tamaki, dorilar, 18+ qat'iyan taqiqlanadi).
     2. Ruxsat berilsa, sotuvbop UGC marketing ssenariysi va vizual prompt tuzadi.
     """
     system_prompt = f"""
-    Sen qat'iy etik nazoratchi va professional UGC Marketing Rejissyorisan.
-    
-    1-QADAM: XAVFSIZLIK VA ETIK TEKSHIRUV (QAT'IY!)
-    Foydalanuvchi yuborgan matn va rasmni tekshir. Agar mahsulot yoki g'oya quyidagilarga aloqador bo'lsa, DARHOL RAD ET:
+    Sen professional UGC Marketing Rejissyorisan.
+
+    1-QADAM: XAVFSIZLIK VA ETIK TEKSHIRUV
+    Foydalanuvchi yuborgan matn va rasmni tekshir. Agar mahsulot quyidagilarga aloqador bo'lsa, is_safe qiymatini false qil:
     - Alkogol va spirtli ichimliklar (pivo, vino, aroq va h.k.)
     - Tamaki, sigaret, veyp, kalyan, nosvoy
     - Narkotik moddalar va psixotrop vositalar
-    - Har qanday tibbiy dorilar, tabletkalar, farmatsevtika mahsulotlari, БАДlar
+    - Har qanday tibbiy dorilar, tabletkalar, farmatsevtika mahsulotlari, BADlar
     - Axloqsiz, uyatsiz (18+), qimor (betting/kazino) yoki noqonuniy narsalar.
 
     2-QADAM: SSENARIY VA VIZUAL REJA
-    Agar mahsulot toza va ruxsat etilgan bo'lsa (masalan: oziq-ovqat, kiyim, agro, xizmatlar, texnika, ta'lim va h.k.), '{lang}' tilida 30-45 soniyalik kuchli marketing ssenariysi yoz.
+    Agar mahsulot toza va ruxsat etilgan bo'lsa (masalan: avtomobil, oziq-ovqat, kiyim, agro, xizmatlar, texnika, ta'lim va h.k.), '{lang}' tilida 30-45 soniyalik kuchli marketing ssenariysi yoz.
     Vizual prompt (visual_prompt) ichida HECH QACHON alkogol, shisha idishdagi spirtli ichimlik yoki sigaret tasvirini qo'shma!
 
     Javobni FAQAT quyidagi JSON formatida qaytar:
     {{
         "is_safe": true yoki false,
-        "violation_reason": "Agar is_safe false bo'lsa, foydalanuvchiga '{lang}' tilida xushmuomalalik bilan rad etish sababi (masalan: Kechirasiz, bizning botimiz orqali alkogol, tamaki, dori vositalari va axloqqa zid mahsulotlar uchun video tayyorlash qat'iyan man etiladi.)",
+        "violation_reason": "Agar is_safe false bo'lsa, foydalanuvchiga '{lang}' tilida xushmuomalalik bilan rad etish sababi",
         "voiceover_text": "Diktor o'qib beradigan to'liq, emotsional va sotuvbop matn ('{lang}' tilida)",
-        "visual_prompt": "Fal.ai video generatori uchun ingliz tilida yuqori sifatli kinematik prompt (masalan: 'Cinematic 3D commercial of..., photorealistic, 8k, smooth camera motion, no alcohol, family friendly')"
+        "visual_prompt": "Fal.ai video generatori uchun ingliz tilida yuqori sifatli kinematik prompt (masalan: 'Cinematic 3D commercial of..., photorealistic, 8k, smooth camera motion')"
     }}
     """
 
     messages = [{"role": "system", "content": system_prompt}]
-    
+
     user_content = [{"type": "text", "text": f"Mahsulot tavsifi: {user_text}"}]
     if image_url:
         user_content.append({"type": "image_url", "image_url": {"url": image_url}})
-        
+
     messages.append({"role": "user", "content": user_content})
 
     response = await openai_client.chat.completions.create(
@@ -58,17 +57,17 @@ async def moderate_and_generate_script(user_text: str, image_url: str = None, la
         response_format={"type": "json_object"},
         messages=messages,
         temperature=0.7
+    )
+
     content = response.choices[0].message.content
     if not content:
         return {
             "is_safe": False,
-            "violation_reason": "Rasmni tahlil qilishda xatolik yuz berdi. Iltimos, rasmni boshqa rakursdan yoki aniqroq izoh bilan qayta yuboring.",
+            "violation_reason": "Rasmni tahlil qilishda xatolik yuz berdi. Iltimos, boshqa rasm yuboring.",
             "voiceover_text": "",
             "visual_prompt": ""
         }
     return json.loads(content)
-
-
 # ==========================================
 # 2. JONLI DIKTOR OVOZI (ElevenLabs API)
 # ==========================================
