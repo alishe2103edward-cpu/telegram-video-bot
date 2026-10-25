@@ -9,10 +9,13 @@ load_dotenv()
 # =====================================================================
 # 1. XAVFSIZ API KALITLAR (Railway Variables yoki .env ichidan o'qiladi)
 # =====================================================================
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-FAL_KEY = os.getenv("FAL_KEY", "")
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip().strip('"').strip("'")
+OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY") or "").strip().strip('"').strip("'")
+FAL_KEY = (os.getenv("FAL_KEY") or os.getenv("FAL_API_KEY") or "").strip().strip('"').strip("'")
+ELEVENLABS_API_KEY = (os.getenv("ELEVENLABS_API_KEY") or os.getenv("ELEVENLABS_KEY") or "").strip().strip('"').strip("'")
+
+# Railway Variables ichida qanday kalitlar borligini tekshirish uchun:
+print("RAILWAY MAVJUD KALITLAR:", [k for k in os.environ.keys() if "KEY" in k or "TOKEN" in k or "OPENAI" in k or "FAL" in k])
 
 # Admin Telegram ID (Cheklarni tasdiqlash va tizimni boshqarish uchun)
 ADMIN_IDS = [
@@ -23,8 +26,8 @@ ADMIN_IDS = [
 # 2. TO'LOV KARTALARI VA XALQARO HAVOLALAR (KRIPTOVALYUTASIZ!)
 # =====================================================================
 PAYMENT_CARDS = {
-    "uzcard_number": os.getenv("UZCARD_NUMBER", "8600 **  **"),
-    "humo_number": os.getenv("HUMO_NUMBER", "9860 **  **"),
+    "uzcard_number": os.getenv("UZCARD_NUMBER", "8600   "),
+    "humo_number": os.getenv("HUMO_NUMBER", "9860   "),
     "card_holder": os.getenv("CARD_HOLDER_NAME", "SADRIDDIN K."),
     # Visa / Mastercard (Lemon Squeezy yoki Paddle to'lov havolalari)
     "intl_link_start": os.getenv("INTL_LINK_START", "https://yourstore.lemonsqueezy.com/buy/start"),
@@ -37,7 +40,7 @@ PAYMENT_CARDS = {
 # =====================================================================
 VIDEO_DURATION_TIERS = {
     "standart_40s": {
-        "title": "⚡ STANDART (40-45 soniya)",
+        "title": "⚡️ STANDART (40-45 soniya)",
         "seconds": 40,
         "scenes_count": 4,       # 4 ta kadr (har biri ~10s)
         "credits_cost": 10,      # 10 kredit
@@ -91,78 +94,3 @@ PRICING_TIERS = {
         "multi_brand": 10,       # SMMchilar uchun 10 ta brend profili
     },
 }
-
-# =====================================================================
-# 5. JONLI VALYUTA KURSI KONVERTORI ($ -> UZS, KZT, TJS, KGS)
-# =====================================================================
-# Internet uzilganda ishlatiladigan zaxira (Fallback) kurslar
-FALLBACK_RATES = {
-    "UZS": float(os.getenv("DEFAULT_USD_UZS", "12850.0")),
-    "KZT": 485.0,
-    "TJS": 10.9,
-    "KGS": 86.5,
-    "RUB": 96.0,
-}
-
-# Kursni har safar so'ramaslik uchun 1 soatlik kesh (Cache)
-_RATE_CACHE = {"timestamp": 0, "rates": FALLBACK_RATES.copy()}
-BANK_SPREAD_BUFFER = 1.01  # +1% bank konvertatsiya zaxirasi
-
-
-async def get_live_exchange_rates() -> dict:
-    """
-    O'zbekiston Markaziy Banki (cbu.uz) va Xalqaro API orqali
-    1$ ning bugungi kursini avtomatik oladi (1 soat kesh bilan).
-    """
-    now = time.time()
-    if now - _RATE_CACHE["timestamp"] < 3600:
-        return _RATE_CACHE["rates"]
-
-    rates = FALLBACK_RATES.copy()
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        # 1) O'zbekiston Markaziy Bankidan aniq UZS kursini olish
-        try:
-            resp = await client.get("https://cbu.uz/oz/arkhiv-kursov-valyut/json/USD/")
-            if resp.status_code == 200:
-                data = resp.json()
-                if data and "Rate" in data[0]:
-                    rates["UZS"] = float(data[0]["Rate"]) * BANK_SPREAD_BUFFER
-        except Exception:
-            pass
-
-        # 2) Qo'shni davlatlar (KZT, TJS, KGS) kursini olish
-        try:
-            resp2 = await client.get("https://open.er-api.com/v6/latest/USD")
-            if resp2.status_code == 200:
-                er_data = resp2.json().get("rates", {})
-                for code in ("KZT", "TJS", "KGS", "RUB"):
-                    if code in er_data:
-                        rates[code] = float(er_data[code]) * BANK_SPREAD_BUFFER
-        except Exception:
-            pass
-
-    _RATE_CACHE["timestamp"] = now
-    _RATE_CACHE["rates"] = rates
-    return rates
-
-
-async def calculate_local_payment(price_usd: float) -> dict:
-    """
-    Mijoz tanlagan $ dagi tarifni bugungi kurs bo'yicha
-    So'm (UZS) va qo'shni valyutalarda chiroyli yaxlitlab hisoblab beradi.
-    """
-    rates = await get_live_exchange_rates()
-    raw_uzs = price_usd * rates["UZS"]
-
-    # Oxirgi 3 ta raqamni minglikka chiroyli yaxlitlash (masalan: 346 950 -> 347 000 so'm)
-    rounded_uzs = int(round(raw_uzs / 1000.0) * 1000)
-
-    return {
-        "price_usd": price_usd,
-        "usd_to_uzs_rate": int(rates["UZS"]),
-        "amount_uzs": rounded_uzs,
-        "amount_uzs_formatted": f"{rounded_uzs:,}".replace(",", " "),
-        "approx_tjs": int(round(price_usd * rates["TJS"])),   # Tojikistonliklar uchun ma'lumot
-        "approx_kzt": int(round(price_usd * rates["KZT"], -2)), # Qozog'istonliklar uchun ma'lumot
-        "approx_kgs": int(round(price_usd * rates["KGS"], -1)), # Qirg'izistonliklar uchun ma'lumot
-    }
