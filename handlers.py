@@ -142,30 +142,43 @@ async def handle_product_input(message: Message, state: FSMContext, bot: Bot):
         if not ai_data.get("is_safe", False):
             await state.clear()
             reason = ai_data.get("violation_reason", "Taqiqlangan mahsulot aniqlandi.")
-            return await status_msg.edit_text(f"🚫 Generatsiya rad etildi!\n\n{reason}\n\n*(Balansingizdan kredit yechilmadi)*", parse_mode="Markdown")
+            return await status_msg.edit_text(f"🚫 Generatsiya rad etildi!\n\n{reason}\n\n*(Balansingizdan kredit yechilmadi)*")
 
         voiceover_text = ai_data["voiceover_text"]
         visual_prompt = ai_data["visual_prompt"]
 
         # 2. Diktor ovozini yaratish (ElevenLabs)
-        await status_msg.edit_text(f"🎙 2/3: Ssenariy tayyor! Jonli diktor ovozi yozilmoqda...\n\n📝 *Matn:* _{voiceover_text}_", parse_mode="Markdown")
+        await status_msg.edit_text(f"🎙 2/3: Ssenariy tayyor! Jonli diktor ovozi yozilmoqda...\n\n📝 Matn: {voiceover_text}")
         audio_path = f"voice_{message.from_user.id}.mp3"
         await generate_voiceover(voiceover_text, output_path=audio_path)
 
         # 3. Video generatsiya qilish (Fal.ai - Kling)
-        await status_msg.edit_text("🎥 3/3: AI Video kadrlar va 3D vizual effektlar generatsiya qilinmoqda (bu 1-2 daqiqa vaqt olishi mumkin, iltimos kuting)...", parse_mode="Markdown")
+        await status_msg.edit_text("🎥 3/3: AI Video kadrlar va 3D vizual effektlar generatsiya qilinmoqda (bu 1-2 daqiqa vaqt olishi mumkin, iltimos kuting)...")
         video_url = await generate_ai_video(visual_prompt=visual_prompt, image_url=image_url)
+
+        # Videoni fayl sifatida yuklab olish (Telegram URL xatoligini oldini olish uchun)
+        video_path = f"video_{message.from_user.id}.mp4"
+        import httpx
+        async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
+            vid_resp = await client.get(video_url)
+            vid_resp.raise_for_status()
+            with open(video_path, "wb") as f:
+                f.write(vid_resp.content)
 
         # Kreditni yechish (-5 kredit)
         await update_user_credits(message.from_user.id, -5)
         remaining = await get_user_credits(message.from_user.id)
 
         # Natijalarni yuborish
-        await status_msg.delete()
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+        video_file = FSInputFile(video_path)
         await message.answer_video(
-            video=video_url,
-caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qolgan balans: {remaining} kredit",
-            parse_mode="Markdown"
+            video=video_file,
+            caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qolgan balans: {remaining} kredit"
         )
         
         # Diktor audio faylini alohida yuborish
@@ -174,6 +187,8 @@ caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qo
         
         if os.path.exists(audio_path):
             os.remove(audio_path)
+        if os.path.exists(video_path):
+            os.remove(video_path)
             
         await state.clear()
 
@@ -182,9 +197,7 @@ caption=f"✅ Videongiz tayyor!\n\n📝 Ssenariy:\n{voiceover_text}\n\n⚡️ Qo
         import traceback
         traceback.print_exc()
         await state.clear()
-        await message.answer(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n(Kreditlaringiz saqlanib qoldi)")
-
-# ==========================================
+        await message.answer(f"⚠️ Texnik xatolik yuz berdi: {str(e)}\n(Kreditlaringiz saqlanib qoldi)")# ==========================================
 # BALANS, TARIFLAR VA TO'LOV TIZIMI
 # ==========================================
 @router.callback_query(F.data == "balance")
