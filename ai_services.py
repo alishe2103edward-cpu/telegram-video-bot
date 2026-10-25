@@ -6,10 +6,12 @@ from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, ELEVENLABS_API_KEY, FAL_KEY
 
 # Fal.ai kalitini tizimga tanitamiz
-os.environ["FAL_KEY"] = FAL_KEY
+os.environ["FAL_KEY"] = FAL_KEY.strip().strip('"').strip("'") if FAL_KEY else ""
 
 # OpenAI mijozini ishga tushiramiz
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+clean_openai_key = OPENAI_API_KEY.strip().strip('"').strip("'") if OPENAI_API_KEY else ""
+print(f"DEBUG OPENAI KEY: uzunligi={len(clean_openai_key)}, boshlanishi={clean_openai_key[:8]}...")
+openai_client = AsyncOpenAI(api_key=clean_openai_key)
 
 # ==========================================
 # 1. ETIK FILTR VA SSENARIY GENERATORI (GPT-4o)
